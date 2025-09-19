@@ -379,7 +379,7 @@
 			: `${className}`} max-w-[calc(100vw-1rem)] justify-start rounded-2xl  bg-white dark:bg-gray-850 dark:text-white shadow-lg  outline-hidden"
 		transition={flyAndScale}
 		side={$mobile ? 'bottom' : 'bottom-start'}
-		sideOffset={2}
+		sideOffset={4}
 		alignOffset={-1}
 	>
 		<slot>
