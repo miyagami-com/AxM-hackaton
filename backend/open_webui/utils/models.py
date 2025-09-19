@@ -8,6 +8,7 @@ from fastapi import Request
 
 from open_webui.routers import openai, ollama
 from open_webui.functions import get_function_models
+from open_webui.utils.orq_client import get_orq_client
 
 
 from open_webui.models.functions import Functions
@@ -57,6 +58,28 @@ async def fetch_openai_models(request: Request, user: UserModel = None):
     return openai_response["data"]
 
 
+async def fetch_orq_models(request: Request, user: UserModel = None):
+    """
+    Fetch models from ORQ and investigate data structure
+    """
+    try:
+        orq_client = get_orq_client()
+        if not orq_client or not orq_client.api_key:
+            log.warning("ORQ client not available or API key missing")
+            return []
+        
+        # This will log the raw ORQ response structure
+        orq_response = await orq_client.get_models()
+        
+        # Return the actual models from ORQ
+        log.info(f"ORQ models fetch completed - found {len(orq_response)} models")
+        return orq_response
+        
+    except Exception as e:
+        log.error(f"ORQ models fetch failed: {e}")
+        return []
+
+
 async def get_all_base_models(request: Request, user: UserModel = None):
     openai_task = (
         fetch_openai_models(request, user)
@@ -68,13 +91,16 @@ async def get_all_base_models(request: Request, user: UserModel = None):
         if request.app.state.config.ENABLE_OLLAMA_API
         else asyncio.sleep(0, result=[])
     )
+    orq_task = (
+        fetch_orq_models(request, user)
+    )
     function_task = get_function_models(request)
 
-    openai_models, ollama_models, function_models = await asyncio.gather(
-        openai_task, ollama_task, function_task
+    openai_models, ollama_models, orq_models, function_models = await asyncio.gather(
+        openai_task, ollama_task, orq_task, function_task
     )
 
-    return function_models + openai_models + ollama_models
+    return function_models + openai_models + ollama_models + orq_models
 
 
 async def get_all_models(request, refresh: bool = False, user: UserModel = None):
