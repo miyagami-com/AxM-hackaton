@@ -1079,6 +1079,18 @@ TOOL_SERVER_CONNECTIONS = PersistentConfig(
 )
 
 ####################################
+# ORQ
+####################################
+
+ENABLE_ORQ_API = True
+
+ORQ_API_KEY = PersistentConfig(
+    "ORQ_API_KEY",
+    "orq.api_key",
+    os.environ.get("ORQ_API_KEY", ""),
+)
+
+####################################
 # WEBUI
 ####################################
 
